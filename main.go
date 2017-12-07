@@ -81,7 +81,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	bytes, _ := ioutil.ReadFile(os.Args[2])
+	var filename string
+	if len(os.Args) > 2 {
+		filename = os.Args[2]
+	} else {
+		filename = "mindaro.yaml"
+	}
+	bytes, _ := ioutil.ReadFile(filename)
 
 	var doc Document
 	err = yaml.Unmarshal(bytes, &doc)
