@@ -16,12 +16,14 @@ type Document struct {
 
 // HelmReleaseBuild represents common build configuration
 type HelmReleaseBuild struct {
-	Args       map[string]string
-	CacheFrom  string `yaml:"cacheFrom"`
-	Context    string
-	Dockerfile string
-	Labels     map[string]string
-	Target     string
+	Args                map[string]string
+	CacheFrom           string `yaml:"cacheFrom"`
+	Context             string
+	DisableContentTrust *bool `yaml:"disableContentTrust"`
+	Dockerfile          string
+	Labels              map[string]string
+	NoCache             *bool `yaml:"noCache"`
+	Target              string
 }
 
 // HelmReleaseBuildConfig represents specific build configuration
@@ -32,7 +34,7 @@ type HelmReleaseBuildConfig struct {
 
 // HelmReleaseContainer represents common container configuration
 type HelmReleaseContainer struct {
-	ExposePorts *bool    `yaml:"exposePorts"`
+	ExposePorts []int    `yaml:"exposePorts"`
 	HTTPPorts   []string `yaml:"httpPorts"`
 	SyncTarget  string   `yaml:"syncTarget"`
 }
@@ -52,7 +54,6 @@ type HelmReleaseInstall struct {
 	Chart  string
 	Values []string
 	Set    map[string]interface{}
-	Wait   *bool
 }
 
 // HelmReleaseDocument represents a configuration file for a helm-release workload
