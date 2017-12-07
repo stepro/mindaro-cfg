@@ -11,57 +11,68 @@ import (
 
 // Document represents a configuration file
 type Document struct {
-	Workload string
+	Kind string
 }
 
-// HelmReleaseContainer represents container configuration for the helm-release workload
+// HelmReleaseBuild represents common build configuration
+type HelmReleaseBuild struct {
+	Args       map[string]string
+	CacheFrom  string `yaml:"cacheFrom"`
+	Context    string
+	Dockerfile string
+	Labels     map[string]string
+	Target     string
+}
+
+// HelmReleaseBuildConfig represents specific build configuration
+type HelmReleaseBuildConfig struct {
+	HelmReleaseBuild `yaml:",inline"`
+	Ignore           string
+}
+
+// HelmReleaseContainer represents common container configuration
 type HelmReleaseContainer struct {
-	Build struct {
-		Args       map[string]string
-		Context    string
-		Dockerfile string
-		Labels     map[string]string
-		Target     string
-	}
-	Command    []string
-	Entrypoint []string
-	Env        map[string]string
-	Imports map[string]string
-	Ports   map[string]string
-	Sync struct {
-		Enabled *bool
-		Target string
-	}
-	Tracing *bool
-	Routing struct {
-		ToMainline *bool `yaml:"toMainline"`
-		ToSideline *bool `yaml:"toSideline"`
-	}
-	HttpPorts struct {
-		Include []string
-		Exclude []string
-	} `yaml:"httpPorts"`
+	ExposePorts *bool    `yaml:"exposePorts"`
+	HTTPPorts   []string `yaml:"httpPorts"`
+	SyncTarget  string   `yaml:"syncTarget"`
 }
 
-// HelmReleaseProperties represents configuration for the helm-release workload
-type HelmReleaseProperties struct {
+// HelmReleaseContainerConfig represents specific container configuration
+type HelmReleaseContainerConfig struct {
 	HelmReleaseContainer `yaml:",inline"`
-	Containers map[string]HelmReleaseContainer
-	Install struct {
-		Chart string
-		Values []string
-		Set map[string]interface{}
-		Wait *bool
-	}
-	SkipHealthChecks *bool `yaml:"skipHealthChecks"`
-	KillOnTerminate  *bool `yaml:"killOnTerminate"`
+	Command              []string
+	Entrypoint           []string
+	Env                  map[string]string
+	Imports              map[string]string
+	Workdir              string
+}
+
+// HelmReleaseInstall represents common install configuration
+type HelmReleaseInstall struct {
+	Chart  string
+	Values []string
+	Set    map[string]interface{}
+	Wait   *bool
 }
 
 // HelmReleaseDocument represents a configuration file for a helm-release workload
 type HelmReleaseDocument struct {
-	Workload string
-	Properties     HelmReleaseProperties
-	Configurations map[string]HelmReleaseProperties
+	Document   `yaml:",inline"`
+	Build      HelmReleaseBuild
+	Container  HelmReleaseContainer
+	Additional map[string]struct {
+		Build     HelmReleaseBuild
+		Container HelmReleaseContainer
+	}
+	Install        HelmReleaseInstall
+	Configurations map[string]struct {
+		Build      HelmReleaseBuildConfig
+		Container  HelmReleaseContainerConfig
+		Additional map[string]struct {
+			Build     HelmReleaseBuildConfig
+			Container HelmReleaseContainerConfig
+		}
+	}
 }
 
 func main() {
@@ -77,11 +88,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if doc.Workload == "" {
-		log.Fatal("Missing workload")
+	if doc.Kind == "" {
+		log.Fatal("Missing kind")
 	}
 
-	if doc.Workload == "helm-release" {
+	if doc.Kind == "helm-release" {
 		var doc HelmReleaseDocument
 		err = yaml.UnmarshalStrict(bytes, &doc)
 		if err != nil {
@@ -89,7 +100,7 @@ func main() {
 		}
 		err = tmpl.Execute(os.Stdout, doc)
 	} else {
-		log.Fatal("Unknown workload '" + doc.Workload + "'")
+		log.Fatal("Unknown kind '" + doc.Kind + "'")
 	}
 	if err != nil {
 		log.Fatal(err)
