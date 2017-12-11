@@ -22,21 +22,19 @@ type HelmReleaseBuild struct {
 	DisableContentTrust *bool `yaml:"disableContentTrust"`
 	Dockerfile          string
 	Labels              map[string]string
-	NoCache             *bool `yaml:"noCache"`
 	Target              string
 }
 
 // HelmReleaseBuildConfig represents specific build configuration
 type HelmReleaseBuildConfig struct {
 	HelmReleaseBuild `yaml:",inline"`
-	Ignore           string
+	Ignore           []string
 }
 
 // HelmReleaseContainer represents common container configuration
 type HelmReleaseContainer struct {
-	ExposePorts []int    `yaml:"exposePorts"`
+	ExposePorts []string `yaml:"exposePorts"`
 	HTTPPorts   []string `yaml:"httpPorts"`
-	SyncTarget  string   `yaml:"syncTarget"`
 }
 
 // HelmReleaseContainerConfig represents specific container configuration
@@ -46,6 +44,9 @@ type HelmReleaseContainerConfig struct {
 	Entrypoint           []string
 	Env                  map[string]string
 	Imports              map[string]string
+	Sync                 []string
+	SyncTarget           string `yaml:"syncTarget"`
+	Unchecked            *bool
 	Workdir              string
 }
 
@@ -56,23 +57,21 @@ type HelmReleaseInstall struct {
 	Set    map[string]interface{}
 }
 
+// HelmReleaseInstallConfig represents specific install configuration
+type HelmReleaseInstallConfig struct {
+	HelmReleaseInstall `yaml:",inline"`
+}
+
 // HelmReleaseDocument represents a configuration file for a helm-release workload
 type HelmReleaseDocument struct {
-	Document   `yaml:",inline"`
-	Build      HelmReleaseBuild
-	Container  HelmReleaseContainer
-	Additional map[string]struct {
-		Build     HelmReleaseBuild
-		Container HelmReleaseContainer
-	}
+	Document       `yaml:",inline"`
+	Build          HelmReleaseBuild
+	Container      HelmReleaseContainer
 	Install        HelmReleaseInstall
 	Configurations map[string]struct {
-		Build      HelmReleaseBuildConfig
-		Container  HelmReleaseContainerConfig
-		Additional map[string]struct {
-			Build     HelmReleaseBuildConfig
-			Container HelmReleaseContainerConfig
-		}
+		Build     HelmReleaseBuildConfig
+		Container HelmReleaseContainerConfig
+		Install   HelmReleaseInstallConfig
 	}
 }
 
