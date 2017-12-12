@@ -35,6 +35,7 @@ type HelmReleaseBuildConfig struct {
 type HelmReleaseContainer struct {
 	ExposePorts []string `yaml:"exposePorts"`
 	HTTPPorts   []string `yaml:"httpPorts"`
+	WSPorts     []string `yaml:"wsPorts"`
 }
 
 // HelmReleaseContainerConfig represents specific container configuration
