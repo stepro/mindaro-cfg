@@ -17,7 +17,7 @@ type Document struct {
 // HelmReleaseBuild represents common build configuration
 type HelmReleaseBuild struct {
 	Args                map[string]string
-	CacheFrom           string `yaml:"cacheFrom"`
+	CacheFrom           []string `yaml:"cacheFrom"`
 	Context             string
 	DisableContentTrust *bool `yaml:"disableContentTrust"`
 	Dockerfile          string
@@ -28,6 +28,7 @@ type HelmReleaseBuild struct {
 // HelmReleaseBuildConfig represents specific build configuration
 type HelmReleaseBuildConfig struct {
 	HelmReleaseBuild `yaml:",inline"`
+	UseGitIgnore     *bool `yaml:"useGitIgnore"`
 	Ignore           []string
 }
 
@@ -41,13 +42,12 @@ type HelmReleaseContainer struct {
 // HelmReleaseContainerConfig represents specific container configuration
 type HelmReleaseContainerConfig struct {
 	HelmReleaseContainer `yaml:",inline"`
+	Args                 []string
 	Command              []string
-	Entrypoint           []string
 	Env                  map[string]string
-	Imports              map[string]string
+	Imports              []string
 	Sync                 []string
 	SyncTarget           string `yaml:"syncTarget"`
-	Unchecked            *bool
 	Workdir              string
 }
 
@@ -77,18 +77,13 @@ type HelmReleaseDocument struct {
 }
 
 func main() {
-	tmpl, err := template.New("template").Parse(os.Args[1])
+	var filename = os.Args[1]
+	bytes, _ := ioutil.ReadFile(filename)
+
+	tmpl, err := template.New("template").Parse(os.Args[2])
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	var filename string
-	if len(os.Args) > 2 {
-		filename = os.Args[2]
-	} else {
-		filename = "mindaro.yaml"
-	}
-	bytes, _ := ioutil.ReadFile(filename)
 
 	var doc Document
 	err = yaml.Unmarshal(bytes, &doc)
